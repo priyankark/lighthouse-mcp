@@ -1,0 +1,21 @@
+{
+  "name": "lighthouse-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Google Lighthouse performance metrics",
+  "type": "module",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "start": "node build/index.js",
+    "dev": "tsc -w"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "lighthouse": "^11.0.0",
+    "chrome-launcher": "^0.15.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.5",
+    "typescript": "^5.1.6"
+  }
+}
