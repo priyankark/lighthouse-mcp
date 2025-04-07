@@ -4,10 +4,33 @@
   "description": "MCP server for Google Lighthouse performance metrics",
   "type": "module",
   "main": "build/index.js",
+  "bin": {
+    "lighthouse-mcp": "./build/index.js"
+  },
+  "files": [
+    "build",
+    "README.md"
+  ],
   "scripts": {
-    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
+    "build": "tsc && chmod +x build/index.js",
     "start": "node build/index.js",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "lighthouse",
+    "performance",
+    "mcp",
+    "audit",
+    "web",
+    "metrics",
+    "claude"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",

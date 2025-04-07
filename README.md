@@ -12,18 +12,64 @@ An MCP server that wraps around Google's Lighthouse tool to help measure various
 
 ## Installation
 
+### Option 1: Using npx (Recommended)
+
+You can run the tool directly using npx without installation:
+
+```bash
+npx lighthouse-mcp
+```
+
+### Option 2: Global Installation
+
+Install the package globally:
+
+```bash
+npm install -g lighthouse-mcp
+```
+
+Then run it:
+
+```bash
+lighthouse-mcp
+```
+
+### Option 3: Local Development
+
 1. Clone this repository
 2. Install dependencies:
-   ```
+   ```bash
    npm install
    ```
 3. Build the project:
-   ```
+   ```bash
    npm run build
    ```
-4. Add the server to your MCP settings configuration file
+4. Run the server:
+   ```bash
+   npm start
+   ```
 
 ## MCP Configuration
+
+### When installed via npm (global or npx)
+
+Add the following to your MCP settings configuration file:
+
+```json
+{
+  "mcpServers": {
+    "lighthouse": {
+      "command": "npx",
+      "args": ["lighthouse-mcp"],
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
+```
+
+### When using local development version
 
 Add the following to your MCP settings configuration file:
 
