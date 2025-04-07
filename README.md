@@ -2,6 +2,8 @@
 
 An MCP server that wraps around Google's Lighthouse tool to help measure various performance metrics for web pages.
 
+![Lighthouse MCP Server Screenshot](screenshot.png)
+
 ## Features
 
 - Run comprehensive Lighthouse audits on any URL
