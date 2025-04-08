@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
-    "lighthouse": "^11.0.0",
+    "lighthouse": "^12.5.1",
     "chrome-launcher": "^0.15.2"
   },
   "devDependencies": {
