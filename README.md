@@ -145,3 +145,8 @@ Claude will use the `get_performance_score` tool to analyze the website and retu
 
 - Node.js 16+
 - Chrome/Chromium browser (for Lighthouse)
+
+## Endorsements
+<a href="https://glama.ai/mcp/servers/@priyankark/lighthouse-mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@priyankark/lighthouse-mcp/badge" />
+</a>
