@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/priyankark-lighthouse-mcp-badge.png)](https://mseep.ai/app/priyankark-lighthouse-mcp)
+
 # Lighthouse MCP Server
 
 An MCP server that wraps around Google's Lighthouse tool to help measure various performance metrics for web pages.
