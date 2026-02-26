@@ -1,6 +1,6 @@
 {
   "name": "lighthouse-mcp",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "MCP server for Google Lighthouse performance metrics",
   "type": "module",
   "main": "build/index.js",
@@ -35,9 +35,13 @@
     "url": ""
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "latest",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "chrome-launcher": "^0.15.2",
     "lighthouse": "^12.5.1"
+  },
+  "overrides": {
+    "basic-ftp": ">=5.2.0",
+    "lodash-es": ">=4.17.23"
   },
   "devDependencies": {
     "@types/node": "^20.4.5",
