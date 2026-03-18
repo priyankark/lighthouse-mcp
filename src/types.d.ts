@@ -46,5 +46,14 @@ declare module 'lighthouse' {
 }
 
 declare module 'chrome-launcher' {
-  export function launch(options: { chromeFlags: string[] }): Promise<{ port: number; kill: () => Promise<void> }>;
+  export interface LaunchOptions {
+    chromeFlags?: string[];
+    envVars?: Record<string, string>;
+    chromePath?: string;
+    userDataDir?: string;
+    port?: number;
+    ignoreDefaultFlags?: boolean;
+    logLevel?: string;
+  }
+  export function launch(options?: LaunchOptions): Promise<{ port: number; kill: () => Promise<void>; process: any; pid: number }>;
 }
