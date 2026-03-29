@@ -13,6 +13,8 @@ import * as chromeLauncher from 'chrome-launcher';
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
+import dns from 'dns/promises';
+import net from 'net';
 
 // Workaround for modelcontextprotocol/typescript-sdk#1380
 // In some Zod runtimes, the method literal is stored under `_def.values[0]`
@@ -46,6 +48,100 @@ Server.prototype.setRequestHandler = function patchedSetRequestHandler(
     return originalSetRequestHandler.call(this, requestSchema, handler);
   }
 };
+
+// ---------------------------------------------------------------------------
+// SSRF protection — validate URLs before passing to Lighthouse
+// Allows localhost/loopback (needed for local dev servers) but blocks
+// cloud metadata endpoints, RFC 1918 private ranges, and link-local IPs.
+// ---------------------------------------------------------------------------
+
+const BLOCKED_IP_RANGES = [
+  // RFC 1918 private networks
+  { prefix: '10.', mask: null },
+  { prefix: '172.', mask: (ip: string) => { const b = parseInt(ip.split('.')[1], 10); return b >= 16 && b <= 31; } },
+  { prefix: '192.168.', mask: null },
+  // Link-local (includes AWS metadata 169.254.169.254)
+  { prefix: '169.254.', mask: null },
+];
+
+const BLOCKED_HOSTNAMES = [
+  'metadata.google.internal',
+  'metadata.goog',
+];
+
+function isBlockedIP(ip: string): boolean {
+  for (const range of BLOCKED_IP_RANGES) {
+    if (ip.startsWith(range.prefix)) {
+      if (range.mask === null || range.mask(ip)) return true;
+    }
+  }
+  return false;
+}
+
+function isLoopback(ip: string): boolean {
+  if (ip === '::1') return true;
+  if (ip.startsWith('127.')) return true;
+  return false;
+}
+
+async function validateUrl(url: string): Promise<void> {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new McpError(ErrorCode.InvalidParams, `Invalid URL: ${url}`);
+  }
+
+  // Only allow http and https schemes
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new McpError(
+      ErrorCode.InvalidParams,
+      `Unsupported URL scheme "${parsed.protocol}" — only http: and https: are allowed`,
+    );
+  }
+
+  const hostname = parsed.hostname;
+
+  // Block known cloud metadata hostnames
+  if (BLOCKED_HOSTNAMES.includes(hostname.toLowerCase())) {
+    throw new McpError(
+      ErrorCode.InvalidParams,
+      `URL hostname "${hostname}" is blocked (cloud metadata endpoint)`,
+    );
+  }
+
+  // If the hostname is an IP literal, validate it directly
+  if (net.isIP(hostname)) {
+    if (isLoopback(hostname)) return; // allow localhost
+    if (isBlockedIP(hostname)) {
+      throw new McpError(
+        ErrorCode.InvalidParams,
+        `URL resolves to a blocked internal IP address (${hostname})`,
+      );
+    }
+    return;
+  }
+
+  // Resolve the hostname and check every returned address
+  let addresses: string[];
+  try {
+    const results = await dns.resolve4(hostname);
+    addresses = results;
+  } catch {
+    // If DNS resolution fails, let Lighthouse handle the error naturally
+    return;
+  }
+
+  for (const ip of addresses) {
+    if (isLoopback(ip)) continue; // allow localhost
+    if (isBlockedIP(ip)) {
+      throw new McpError(
+        ErrorCode.InvalidParams,
+        `URL hostname "${hostname}" resolves to blocked internal IP address (${ip})`,
+      );
+    }
+  }
+}
 
 // Define types for Lighthouse
 interface LighthouseResult {
@@ -191,6 +287,9 @@ class LighthouseServer {
         'Invalid audit arguments'
       );
     }
+
+    // SSRF protection: validate the URL before launching Chrome
+    await validateUrl(args.url);
 
     try {
       // Ensure temp directory exists and is writable (fixes #19 - Windows EPERM)
