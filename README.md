@@ -101,7 +101,7 @@ Run a comprehensive Lighthouse audit on a URL.
 **Parameters:**
 - `url` (required): The URL to audit
 - `categories` (optional): Array of categories to audit (defaults to all)
-  - Options: "performance", "accessibility", "best-practices", "seo", "pwa"
+  - Options: "performance", "accessibility", "best-practices", "seo"
 - `device` (optional): Device to emulate (defaults to "mobile")
   - Options: "mobile", "desktop"
 - `throttling` (optional): Whether to apply network throttling (defaults to true)
@@ -145,10 +145,16 @@ Claude will use the `get_performance_score` tool to analyze the website and retu
 
 ## Requirements
 
-- Node.js 16+
+- Node.js 22.19+
 - Chrome/Chromium browser (for Lighthouse)
 
 ## Endorsements
 <a href="https://glama.ai/mcp/servers/@priyankark/lighthouse-mcp">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/@priyankark/lighthouse-mcp/badge" />
 </a>
+
+## Security
+
+Chrome runs with its sandbox enabled. Localhost, IPv4 loopback, and IPv6 loopback remain supported by default. Private, link-local, cloud metadata, and other non-public destinations are blocked, including requests made by redirects and page resources. Connections use validated IP addresses to prevent DNS rebinding. Because loopback access is intentional, audit only pages you trust to access services on your own machine. For hostile sites, use a separate environment with network isolation.
+
+Audits are limited to one at a time and time out after 120 seconds. Chrome and the audit proxy are cleaned up after success or failure.
