@@ -158,3 +158,7 @@ Claude will use the `get_performance_score` tool to analyze the website and retu
 Chrome runs with its sandbox enabled. Localhost, IPv4 loopback, and IPv6 loopback remain supported by default. Private, link-local, cloud metadata, and other non-public destinations are blocked, including requests made by redirects and page resources. Connections use validated IP addresses to prevent DNS rebinding. Because loopback access is intentional, audit only pages you trust to access services on your own machine. For hostile sites, use a separate environment with network isolation.
 
 Audits are limited to one at a time and time out after 120 seconds. Chrome and the audit proxy are cleaned up after success or failure.
+
+### Public-only audits
+
+Set `AUDIT_ALLOW_LOOPBACK=false` to reject loopback destinations as well as private and metadata addresses. Hosted workers must use this setting and infrastructure egress isolation. Local development keeps loopback access by default.
