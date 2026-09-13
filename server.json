@@ -7,13 +7,13 @@
     "url": "https://github.com/priyankark/lighthouse-mcp",
     "source": "github"
   },
-  "version": "0.1.16",
+  "version": "0.1.17",
   "packages": [
     {
       "registry_type": "npm",
       "registry_base_url": "https://registry.npmjs.org",
       "identifier": "lighthouse-mcp",
-      "version": "0.1.16",
+      "version": "0.1.17",
       "transport": {
         "type": "stdio"
       }
