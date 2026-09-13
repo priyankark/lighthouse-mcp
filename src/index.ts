@@ -167,7 +167,7 @@ class LighthouseServer {
     let proxy: Awaited<ReturnType<typeof createAuditProxy>> | undefined;
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const allowLoopback = true;
+      const allowLoopback = process.env.AUDIT_ALLOW_LOOPBACK !== 'false';
       const url = parseUrl(args.url);
       await resolveTarget(url.hostname, allowLoopback);
       proxy = await createAuditProxy(allowLoopback);
