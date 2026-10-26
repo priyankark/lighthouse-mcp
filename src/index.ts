@@ -58,7 +58,7 @@ class LighthouseServer {
     this.server = new Server(
       {
         name: 'lighthouse-mcp',
-        version: '0.1.17',
+        version: '0.1.18',
       },
       {
         capabilities: {
