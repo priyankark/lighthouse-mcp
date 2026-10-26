@@ -1,6 +1,6 @@
 {
   "name": "lighthouse-mcp",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "MCP server for Google Lighthouse performance metrics",
   "type": "module",
   "main": "build/index.js",
