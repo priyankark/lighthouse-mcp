@@ -162,3 +162,16 @@ Audits are limited to one at a time and time out after 120 seconds. Chrome and t
 ### Public-only audits
 
 Set `AUDIT_ALLOW_LOOPBACK=false` to reject loopback destinations as well as private and metadata addresses. Hosted workers must use this setting and infrastructure egress isolation. Local development keeps loopback access by default.
+
+
+## Maintainer CI and releases
+
+GitHub Actions runs the build, network and release-policy tests, npm security audit, and real Chrome smoke tests on the minimum supported Node version and Node 24. Node 24 also installs the npm tarball in a clean temporary project and checks its executable, dependencies, MCP version, and browser audits.
+
+Every push to `main` runs the release pipeline. When package files change, it automatically increments the patch version (or honors a larger version already committed), synchronizes package metadata, repeats validation, commits and tags the release, publishes to npm with provenance, and creates a GitHub release. Changes limited to documentation, tests, or workflows do not publish a new version. Runtime server versions come from `package.json`.
+
+Dependabot checks npm and GitHub Actions weekly. A successful PR CI run automatically merges npm updates only when all existing changed dependencies are stable patch/minor upgrades and only `package.json` / `package-lock.json` changed. Major upgrades, 0.x minor upgrades, downgrades, prereleases, and GitHub Actions changes require review. The merge job runs only trusted code from `main`, verifies the tested PR head, and explicitly dispatches publishing after a bot merge.
+
+npm publishing uses the `npm` GitHub environment and an npm trusted publisher for `priyankark/lighthouse-mcp`, workflow `publish.yml`, environment `npm`, with direct publishing allowed. No npm token is stored in GitHub. The environment accepts deployments only from `main`.
+
+To retry a failed release, rerun the **Publish** workflow or run `./release.sh`. The pipeline reuses an unpublished version and skips an already published, unchanged package. If a reserved release tag points to different code, it stops rather than overwriting that version. For a breaking change, update `package.json` and `package-lock.json` to the intended major/minor version in the reviewed PR before merging.

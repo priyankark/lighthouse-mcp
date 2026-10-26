@@ -1,5 +1,6 @@
 import http from 'node:http';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 const origin = http.createServer((_req, res) => {
@@ -7,10 +8,11 @@ const origin = http.createServer((_req, res) => {
   res.end('<!doctype html><html lang="en"><title>Local audit</title><body><h1>Localhost still works</h1></body></html>');
 });
 await new Promise(resolve => origin.listen(0, '::', resolve));
-const transport = new StdioClientTransport({ command: process.execPath, args: ['build/index.js'], stderr: 'inherit' });
+const transport = new StdioClientTransport({ command: process.execPath, args: [process.env.MCP_ENTRYPOINT || 'build/index.js'], env: process.env, stderr: 'inherit' });
 const client = new Client({ name: 'release-smoke', version: '1.0.0' });
 try {
   await client.connect(transport);
+  assert.equal(client.getServerVersion().version, JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version);
   assert.equal((await client.listTools()).tools.length, 2);
   for (const host of ['localhost', '[::1]']) {
     const result = await client.callTool({ name: 'get_performance_score', arguments: { url: `http://${host}:${origin.address().port}`, device: 'desktop' } }, undefined, { timeout: 150_000 });
