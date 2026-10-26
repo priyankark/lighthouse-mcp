@@ -15,7 +15,7 @@ if (tagged && spawnSync('git', ['merge-base', '--is-ancestor', tag, 'HEAD']).sta
   throw new Error('Latest release tag is not an ancestor of this checkout');
 }
 const diff = tagged ? spawnSync('git', ['diff', '--quiet', tag, '--',
-  'package.json', 'package-lock.json', 'src', 'server.json'], { stdio: 'inherit' }).status : 1;
+  'package.json', 'package-lock.json', 'src', 'server.json', 'tsconfig.json'], { stdio: 'inherit' }).status : 1;
 if (diff !== 0 && diff !== 1) throw new Error('Cannot compare release contents');
 const version = nextRelease(pkg.version, latest, diff === 1);
 if (!version) {
