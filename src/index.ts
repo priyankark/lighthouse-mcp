@@ -58,7 +58,7 @@ class LighthouseServer {
     this.server = new Server(
       {
         name: 'lighthouse-mcp',
-        version: '0.1.18',
+        version: JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version,
       },
       {
         capabilities: {

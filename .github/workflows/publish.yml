@@ -1,0 +1,115 @@
+name: Publish
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+jobs:
+  checks:
+    uses: ./.github/workflows/ci.yml
+  publish:
+    needs: checks
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: npm
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome
+      CHROME_PATH: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Check that the tested commit is still main
+        id: current
+        run: |
+          remote=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [ "$remote" = "$(git rev-parse HEAD)" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "Main advanced; the newer pipeline will handle the release."
+          fi
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: steps.current.outputs.current == 'true'
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - if: steps.current.outputs.current == 'true'
+        run: npm install --global npm@11
+      - name: Plan an idempotent release
+        if: steps.current.outputs.current == 'true'
+        id: release
+        run: node .github/scripts/prepare-release.mjs
+      - name: Validate the versioned package
+        if: steps.release.outputs.publish == 'true'
+        run: |
+          npm ci --ignore-scripts
+          npm run build
+          npm test
+          npm audit --audit-level=low
+          npm run test:package
+      - name: Commit the version and reserve its tag
+        if: steps.release.outputs.publish == 'true'
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          if [ -f server.json ]; then git add server.json; fi
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: release $VERSION"
+          fi
+          if git rev-parse --verify "refs/tags/v$VERSION" >/dev/null 2>&1; then
+            test "$(git rev-parse "refs/tags/v$VERSION")" = "$(git rev-parse HEAD)"
+          else
+            git tag "v$VERSION"
+          fi
+          # A concurrent main change fails this push before npm can publish.
+          git push --atomic origin HEAD:main "refs/tags/v$VERSION"
+      - name: Publish with npm trusted publishing
+        if: steps.release.outputs.publish == 'true'
+        run: npm publish --provenance --access public
+      - name: Verify npm availability
+        if: steps.release.outputs.publish == 'true'
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+          let ready = false;
+          for (let attempt = 0; attempt < 30; attempt++) {
+            const response = await fetch('https://registry.npmjs.org/' + encodeURIComponent(pkg.name), {
+              headers: { 'Cache-Control': 'no-cache' }, signal: AbortSignal.timeout(20_000),
+            });
+            if (!response.ok) throw new Error('npm returned ' + response.status);
+            const metadata = await response.json();
+            if (metadata['dist-tags'].latest === pkg.version && metadata.versions[pkg.version]) {
+              assert.ok(metadata.versions[pkg.version].bin[pkg.name], 'Published command is missing');
+              ready = true;
+              break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 10_000));
+          }
+          if (!ready) throw new Error('npm has not exposed the release yet; rerun this workflow to finish');
+          console.log(pkg.name + '@' + pkg.version + ' is available as latest');
+          JS
+      - name: Create the GitHub release
+        if: steps.current.outputs.current == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          if ! gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release create "v$VERSION" --verify-tag --title "v$VERSION" --generate-notes
+          fi

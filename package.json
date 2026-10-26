@@ -1,6 +1,6 @@
 {
   "name": "lighthouse-mcp",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "description": "MCP server for Google Lighthouse performance metrics",
   "type": "module",
   "main": "build/index.js",
@@ -17,7 +17,9 @@
     "dev": "tsc -w",
     "prepublishOnly": "npm test",
     "update-server-json": "node -e \"const fs=require('fs');const pkg=JSON.parse(fs.readFileSync('package.json'));const server=JSON.parse(fs.readFileSync('server.json'));server.version=pkg.version;server.packages[0].version=pkg.version;fs.writeFileSync('server.json',JSON.stringify(server,null,2));\"",
-    "test": "npm run build && node --test test/*.test.mjs"
+    "test": "npm run build && node --test test/*.test.mjs",
+    "test:smoke": "node test/smoke.mjs",
+    "test:package": "node .github/scripts/check-package.mjs"
   },
   "keywords": [
     "lighthouse",
