@@ -1,6 +1,6 @@
 {
   "name": "lighthouse-mcp",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "MCP server for Google Lighthouse performance metrics",
   "type": "module",
   "main": "build/index.js",
@@ -36,7 +36,7 @@
     "url": "https://github.com/priyankark/lighthouse-mcp.git"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "chrome-launcher": "^1.2.1",
     "ipaddr.js": "^2.5.0",
     "lighthouse": "^13.4.1"
